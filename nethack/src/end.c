@@ -71,6 +71,13 @@ extern void FDECL(nethack_exit, (int));
 #define nethack_exit exit
 #endif
 
+#if TARGET_OS_IPHONE
+extern boolean iphone_has_backup(void);
+extern boolean iphone_restore_backup(void);
+extern void iphone_delete_all_backups(void);
+extern void iphone_trigger_restart(void);
+#endif
+
 #define done_stopprint program_state.stopprint
 
 #ifndef PANICTRACE
@@ -1165,39 +1172,56 @@ int how;
             context.botl = 1;
         }
     }
-    if (Lifesaved && (how <= GENOCIDED)) {
-        pline("But wait...");
-        makeknown(AMULET_OF_LIFE_SAVING);
-        Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
-        if (how == CHOKING)
-            You("vomit ...");
-        You_feel("much better!");
-        pline_The("medallion crumbles to dust!");
-        if (uamul)
-            useup(uamul);
-
-        (void) adjattrib(A_CON, -1, TRUE);
-        savelife(how);
-        if (how == GENOCIDED) {
-            pline("Unfortunately you are still genocided...");
+    #if TARGET_OS_IPHONE
+    if (how <= GENOCIDED && iphone_has_backup()) {
+        if (yn("Restore from last level change?") == 'y') {
+            if (iphone_restore_backup()) {
+                pline("Restoring from backup...");
+                iphone_trigger_restart();
+                return;
+            } else {
+                pline("Failed to restore from backup.");
+            }
         } else {
-            survive = TRUE;
+            iphone_delete_all_backups();
         }
     }
-    /* explore and wizard modes offer player the option to keep playing */
-    if (!survive && (wizard || discover) && how <= GENOCIDED
-        && !paranoid_query(ParanoidDie, "Die?")) {
-        pline("OK, so you don't %s.", (how == CHOKING) ? "choke" : "die");
-        iflags.last_msg = PLNMSG_OK_DONT_DIE;
-        savelife(how);
-        survive = TRUE;
-    }
+    #endif
 
-    if (survive) {
-        killer.name[0] = '\0';
-        killer.format = KILLED_BY_AN; /* reset to 0 */
-        return;
-    }
+         if (Lifesaved && (how <= GENOCIDED)) {
+             pline("But wait...");
+             makeknown(AMULET_OF_LIFE_SAVING);
+             Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
+             if (how == CHOKING)
+                 You("vomit ...");
+             You_feel("much better!");
+             pline_The("medallion crumbles to dust!");
+             if (uamul)
+                 useup(uamul);
+
+             (void) adjattrib(A_CON, -1, TRUE);
+             savelife(how);
+             if (how == GENOCIDED) {
+                 pline("Unfortunately you are still genocided...");
+             } else {
+                 survive = TRUE;
+             }
+         }
+         /* explore and wizard modes offer player the option to keep playing */
+         if (!survive && (wizard || discover) && how <= GENOCIDED
+             && !paranoid_query(ParanoidDie, "Die?")) {
+             pline("OK, so you don't %s.", (how == CHOKING) ? "choke" : "die");
+             iflags.last_msg = PLNMSG_OK_DONT_DIE;
+             savelife(how);
+             survive = TRUE;
+         }
+
+         if (survive) {
+             killer.name[0] = '\0';
+             killer.format = KILLED_BY_AN; /* reset to 0 */
+             return;
+         }
+
     really_done(how);
     /*NOTREACHED*/
 }

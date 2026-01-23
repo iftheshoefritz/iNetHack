@@ -73,6 +73,14 @@
 	return NO;
 }
 
+- (void) clear {
+	[mutex lock];
+	[events removeAllObjects];
+	[lastEvent release];
+	lastEvent = nil;
+	[mutex unlock];
+}
+
 - (void) dealloc {
 	[lastEvent release];
 	[mutex release];

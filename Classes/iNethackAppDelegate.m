@@ -151,6 +151,17 @@
 			NSLog(@"saveDirectory could not be created!");
 		}
 	}
+
+	NSString *backupsDirectory = [currentDirectory stringByAppendingPathComponent:@"backups"];
+	NSLog(@"backupsDirectory %@", backupsDirectory);
+	if (![[NSFileManager defaultManager] fileExistsAtPath:backupsDirectory]) {
+		BOOL succ = [[NSFileManager defaultManager] createDirectoryAtPath:backupsDirectory withIntermediateDirectories:YES
+															   attributes:nil error:nil];
+		if (!succ) {
+			NSLog(@"backupsDirectory could not be created!");
+		}
+	}
+
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:currentDirectory];
 
     NSArray *filelist= [[NSFileManager defaultManager]  contentsOfDirectoryAtPath:saveDirectory error:nil];

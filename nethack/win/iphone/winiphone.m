@@ -966,6 +966,206 @@ sys_random_seed()
 
 
 
+#pragma mark level-change save backup
+
+#define MAX_SAVE_BACKUPS 5
+
+void iphone_backup_savefile(void) {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    
+    NSString *username = [NSUserName() copy];
+    if (!username || [username length] == 0) {
+        username = [NSString stringWithFormat:@"user_%d", getuid()];
+    }
+    
+    NSArray *allFiles = [fm contentsOfDirectoryAtPath:@"." error:nil];
+    NSMutableArray *levelFiles = [NSMutableArray array];
+    
+    for (NSString *file in allFiles) {
+        if ([file hasPrefix:[NSString stringWithFormat:@"%d.", getuid()]]) {
+            [levelFiles addObject:file];
+        }
+    }
+    
+    if ([levelFiles count] == 0) {
+        NSLog(@"iphone_backup_savefile: no level files found to backup");
+        [username release];
+        return;
+    }
+    
+    NSLog(@"iphone_backup_savefile: found %lu level files to backup", (unsigned long)[levelFiles count]);
+
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"yyyyMMdd_HHmmss"];
+    NSString *timestamp = [formatter stringFromDate:[NSDate date]];
+    [formatter release];
+
+    NSString *levelInfo = [NSString stringWithFormat:@"d%d_l%d", u.uz.dnum, u.uz.dlevel];
+    NSString *userForBackup = [username stringByReplacingOccurrencesOfString:@" " withString:@"_"];
+    NSString *backupDirName = [NSString stringWithFormat:@"%@_%@_%@.backup",
+                               userForBackup,
+                               levelInfo,
+                               timestamp];
+    NSString *backupDirPath = [@"./backups" stringByAppendingPathComponent:backupDirName];
+
+    NSError *error = nil;
+    if (![fm createDirectoryAtPath:backupDirPath withIntermediateDirectories:YES attributes:nil error:&error]) {
+        NSLog(@"iphone_backup_savefile: failed to create backup directory: %@", error);
+        [username release];
+        return;
+    }
+    
+    for (NSString *levelFile in levelFiles) {
+        NSString *sourcePath = levelFile;
+        NSString *destPath = [backupDirPath stringByAppendingPathComponent:levelFile];
+        if ([fm copyItemAtPath:sourcePath toPath:destPath error:&error]) {
+            NSLog(@"iphone_backup_savefile: backed up level file %@", levelFile);
+        } else {
+            NSLog(@"iphone_backup_savefile: failed to backup level file %@: %@", levelFile, error);
+        }
+    }
+    
+    NSLog(@"iphone_backup_savefile: created backup at %@", backupDirPath);
+
+    NSArray *backups = [fm contentsOfDirectoryAtPath:@"./backups" error:nil];
+    NSMutableArray *userBackups = [NSMutableArray array];
+    NSString *userPrefix = [userForBackup stringByAppendingString:@"_"];
+
+    for (NSString *backup in backups) {
+        if ([backup hasPrefix:userPrefix] && [backup hasSuffix:@".backup"]) {
+            [userBackups addObject:backup];
+        }
+    }
+
+    [userBackups sortUsingSelector:@selector(compare:)];
+    while (userBackups.count > MAX_SAVE_BACKUPS) {
+        NSString *oldestBackup = [userBackups objectAtIndex:0];
+        NSString *oldestPath = [@"./backups" stringByAppendingPathComponent:oldestBackup];
+        if ([fm removeItemAtPath:oldestPath error:&error]) {
+            NSLog(@"iphone_backup_savefile: removed old backup %@", oldestBackup);
+        }
+        [userBackups removeObjectAtIndex:0];
+    }
+    
+    [username release];
+}
+
+static NSString* iphone_find_latest_backup(void) {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSArray *backups = [fm contentsOfDirectoryAtPath:@"./backups" error:nil];
+
+    NSString *username = [NSUserName() copy];
+    if (!username || [username length] == 0) {
+        username = [NSString stringWithFormat:@"user_%d", getuid()];
+    }
+    
+    NSString *userPrefix = [[username stringByReplacingOccurrencesOfString:@" " withString:@"_"]
+                             stringByAppendingString:@"_"];
+    NSMutableArray *userBackups = [NSMutableArray array];
+
+    for (NSString *backup in backups) {
+        if ([backup hasPrefix:userPrefix] && [backup hasSuffix:@".backup"]) {
+            [userBackups addObject:backup];
+        }
+    }
+
+    if (userBackups.count == 0) {
+        [username release];
+        return nil;
+    }
+
+    [userBackups sortUsingSelector:@selector(compare:)];
+    NSString *latestBackup = [userBackups lastObject];
+    NSString *result = [@"./backups" stringByAppendingPathComponent:latestBackup];
+    [username release];
+    return result;
+    }
+
+boolean iphone_restore_backup(void) {
+    NSFileManager *fm = [NSFileManager defaultManager];
+
+    NSString *backupDirPath = iphone_find_latest_backup();
+    if (!backupDirPath) {
+        NSLog(@"iphone_restore_backup: no backup found");
+        return FALSE;
+    }
+
+    NSError *error = nil;
+    NSArray *backupFiles = [fm contentsOfDirectoryAtPath:backupDirPath error:&error];
+    if (!backupFiles) {
+        NSLog(@"iphone_restore_backup: failed to read backup directory: %@", error);
+        return FALSE;
+    }
+
+    NSString *filePattern = [NSString stringWithFormat:@"%d.", getuid()];
+    NSArray *currentFiles = [fm contentsOfDirectoryAtPath:@"." error:nil];
+    for (NSString *file in currentFiles) {
+        if ([file hasPrefix:filePattern]) {
+            if ([fm removeItemAtPath:file error:&error]) {
+                NSLog(@"iphone_restore_backup: removed existing %@", file);
+            } else {
+                NSLog(@"iphone_restore_backup: failed to remove %@: %@", file, error);
+            }
+        }
+    }
+
+    boolean result = TRUE;
+    for (NSString *backupFile in backupFiles) {
+        NSString *sourcePath = [backupDirPath stringByAppendingPathComponent:backupFile];
+        NSString *destPath = backupFile;
+        if ([fm copyItemAtPath:sourcePath toPath:destPath error:&error]) {
+            NSLog(@"iphone_restore_backup: restored level file %@", backupFile);
+        } else {
+            NSLog(@"iphone_restore_backup: failed to restore level file %@: %@", backupFile, error);
+            result = FALSE;
+        }
+    }
+    
+    if (result) {
+        NSLog(@"iphone_restore_backup: successfully restored from %@", backupDirPath);
+    }
+    return result;
+}
+
+    boolean iphone_has_backup(void) {
+    return iphone_find_latest_backup() != nil;
+    }
+
+    void iphone_delete_all_backups(void) {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSArray *backups = [fm contentsOfDirectoryAtPath:@"./backups" error:nil];
+
+    NSString *username = [NSUserName() copy];
+    if (!username || [username length] == 0) {
+        username = [NSString stringWithFormat:@"user_%d", getuid()];
+    }
+    
+    NSString *userPrefix = [[username stringByReplacingOccurrencesOfString:@" " withString:@"_"]
+                             stringByAppendingString:@"_"];
+
+    for (NSString *backup in backups) {
+        if ([backup hasPrefix:userPrefix] && [backup hasSuffix:@".backup"]) {
+            NSString *path = [@"./backups" stringByAppendingPathComponent:backup];
+            [fm removeItemAtPath:path error:nil];
+            NSLog(@"iphone_delete_all_backups: removed %@", backup);
+        }
+    }
+    [username release];
+    }
+
+void iphone_trigger_restart(void) {
+    NSLog(@"iphone_trigger_restart: triggering game restart from backup");
+
+    program_state.gameover = 1;
+    program_state.something_worth_saving = 0;
+
+    [[MainViewController instance] performSelectorOnMainThread:@selector(restartGameFromBackup)
+                                                    withObject:nil
+                                                 waitUntilDone:NO];
+
+    [NSThread exit];
+}
+
 void iphone_main() {
 	int argc = 0;
 	char **argv = NULL;

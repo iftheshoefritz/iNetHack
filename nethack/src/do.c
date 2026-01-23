@@ -21,6 +21,10 @@ STATIC_DCL void NDECL(final_level);
 
 extern int n_dgns; /* number of dungeons, from dungeon.c */
 
+#if TARGET_OS_IPHONE
+extern void iphone_backup_savefile(void); /* from winiphone.m */
+#endif
+
 static NEARDATA const char drop_types[] = { ALLOW_COUNT, COIN_CLASS,
                                             ALL_CLASSES, 0 };
 
@@ -1686,6 +1690,11 @@ boolean at_stairs, falling, portal;
     assign_level(&u.uz0, &u.uz); /* reset u.uz0 */
 #ifdef INSURANCE
     save_currentstate();
+#endif
+
+#if TARGET_OS_IPHONE
+    /* Create a backup of the save file after each level change */
+    iphone_backup_savefile();
 #endif
 
     if ((annotation = get_annotation(&u.uz)) != 0)

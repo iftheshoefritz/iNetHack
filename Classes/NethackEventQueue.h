@@ -37,6 +37,8 @@
 - (void) addKeyEvent:(int)k;
 - (NethackEvent *) waitForNextEvent;
 
+- (void) clear;
+
 // obsolete and untested
 - (BOOL) repeatLastEvent;
 

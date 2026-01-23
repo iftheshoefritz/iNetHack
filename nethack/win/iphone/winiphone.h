@@ -77,6 +77,12 @@ void iphone_reset_glyph_cache(); //iNethack2: reset glyph cache
 void iphone_haptic_reset();
 void iphone_haptic(int haptictype);
 
+void iphone_backup_savefile(void);
+boolean iphone_restore_backup(void);
+boolean iphone_has_backup(void);
+void iphone_delete_all_backups(void);
+void iphone_trigger_restart(void);
+
 #define VERSION_SANITY2_64 0xb8d26958UL //iNethack2: the versioninfo string for 64-bit bones
 #define HAPTIC_DAMAGE 1
 #define HAPTIC_VIBRATING 2

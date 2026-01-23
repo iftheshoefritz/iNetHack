@@ -145,6 +145,37 @@ static MainViewController *instance;
 	[pool drain];
 }
 
+- (void) restartGameFromBackup {
+    NSLog(@"restartGameFromBackup: restarting game from backup");
+
+    // Wait for the old thread to finish
+    if (nethackThread) {
+        // Give it a moment to clean up
+        [NSThread sleepForTimeInterval:0.5];
+        [nethackThread release];
+        nethackThread = nil;
+    }
+
+    gameInProgress = NO;
+
+    [windows removeAllObjects];
+    windowIdCounter = 1;
+
+    [nethackEventQueue clear];
+
+    [self.navigationController popToRootViewControllerAnimated:NO];
+
+    [(MainView *)self.view resetOffset];
+    [self.view setNeedsDisplay];
+
+    extern int hackpid;
+    hackpid = 0;
+
+    iphone_haptic_reset();
+
+    [self launchNetHack];
+}
+
 #pragma mark window properties
 
 - (Window *) mapWindow {

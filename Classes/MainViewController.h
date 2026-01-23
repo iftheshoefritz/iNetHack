@@ -136,4 +136,6 @@
 - (void) showKeyboard:(BOOL)d;
 - (void) didBecomeActive;
 
+- (void) restartGameFromBackup;
+
 @end
