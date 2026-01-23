@@ -1499,7 +1499,7 @@
 				LastUpgradeCheck = 1420;
 				TargetAttributes = {
 					1D6058900D05DD3D006BFB54 = {
-						DevelopmentTeam = JV43X8XJFX;
+						DevelopmentTeam = HBBQMKQB5W;
 						LastSwiftMigration = 1420;
 					};
 				};
@@ -1906,7 +1906,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 46;
-				DEVELOPMENT_TEAM = JV43X8XJFX;
+				DEVELOPMENT_TEAM = HBBQMKQB5W;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1916,7 +1916,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 2.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = com.futureshocksoftware.inethack2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.iftheshoefritzdev.inethack2;
 				PRODUCT_NAME = iNetHack2;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1936,14 +1936,14 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 46;
-				DEVELOPMENT_TEAM = JV43X8XJFX;
+				DEVELOPMENT_TEAM = HBBQMKQB5W;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = iNetHack_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 2.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = com.futureshocksoftware.inethack2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.iftheshoefritzdev.inethack2;
 				PRODUCT_NAME = iNetHack2;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2002,14 +2002,14 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 46;
-				DEVELOPMENT_TEAM = JV43X8XJFX;
+				DEVELOPMENT_TEAM = HBBQMKQB5W;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = iNetHack_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 2.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = com.futureshocksoftware.inethack2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.iftheshoefritzdev.inethack2;
 				PRODUCT_NAME = iNetHack2;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SWIFT_VERSION = 5.0;
