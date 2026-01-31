@@ -1215,6 +1215,16 @@ int after; /* this is extra fast monster movement */
 
             pline("%s %s reluctantly over %s.", noit_Monnam(mtmp),
                   vtense((char *) 0, locomotion(mtmp->data, "step")), what);
+        } else if (wasseen || canseemon(mtmp)) {
+            /* pet stepped willingly, so items here are not cursed;
+               mark them as bknown */
+            if (!Hallucination && level.flags.hero_memory
+                && glyph_is_object(levl[nix][niy].glyph)) {
+                struct obj *o;
+                for (o = vobj_at(nix, niy); o; o = o->nexthere) {
+                    o->bknown = 1;
+                }
+            }
         }
         for (j = MTSZ - 1; j > 0; j--)
             mtmp->mtrack[j] = mtmp->mtrack[j - 1];
