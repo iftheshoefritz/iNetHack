@@ -1088,7 +1088,7 @@ int after; /* this is extra fast monster movement */
                     niy = ny;
                     chi = i;
                     do_eat = TRUE;
-                    cursemsg[i] = FALSE; /* not reluctant */
+                    cursemsg[i] = TRUE; /* still reluctant */
                     goto newdogpos;
                 }
             }
