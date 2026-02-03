@@ -259,8 +259,8 @@ void iphone_askname() {
 		}
 		//NSCAssert1(plname[0], @"Failed to init plname from name '%@'", name);
         if (!plname[0]) {
-            strcpy(plname, "Mobile User");
-            [defaults setObject:@"Mobile User" forKey:kOptionUsername];
+            strcpy(plname, "elftheshoefritz");
+            [defaults setObject:@"elftheshoefritz" forKey:kOptionUsername];
         }
 	} else {
 		strcpy(plname, "wizard");
