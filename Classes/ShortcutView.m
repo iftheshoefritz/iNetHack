@@ -71,11 +71,23 @@ static Shortcut *ShortcutForIdentifier (NSString *identifier) {
 - (id)init
 {
 	if (self = [super init]) {
-        ShortcutTileSize =  CGSizeMake(40, 40);
         colorInvert = [[NSUserDefaults standardUserDefaults] floatForKey:@"colorInvert"];
 
-        if ([[UIScreen mainScreen] bounds].size.width>900)  //iNethack2: increase shortcut boxes slightly for larger screens
-            ShortcutTileSize =  CGSizeMake(60, 60);
+        // Determine tile size based on device and orientation
+        CGSize screenSize = [UIScreen mainScreen].bounds.size;
+        BOOL isLandscape = screenSize.width > screenSize.height;
+        BOOL isIPad = screenSize.width > 900 || screenSize.height > 900;
+
+        if (isIPad && isLandscape) {
+            // Two-row mode: 50x50 tiles to fit all shortcuts without scrolling
+            ShortcutTileSize = CGSizeMake(50, 50);
+        } else if (isIPad) {
+            // iPad portrait: larger tiles
+            ShortcutTileSize = CGSizeMake(60, 60);
+        } else {
+            // iPhone: standard tiles
+            ShortcutTileSize = CGSizeMake(40, 40);
+        }
 		self.opacity       = 1.0f;
 		self.isHighlighted = NO;
         self.borderColor   = colorInvert?[UIColor blackColor].CGColor:[UIColor whiteColor].CGColor;
@@ -125,7 +137,16 @@ static Shortcut *ShortcutForIdentifier (NSString *identifier) {
 @property (nonatomic, assign) NSInteger highlightedIndex;
 @property (nonatomic, retain) NSArray* shortcuts;
 @property (nonatomic, retain) NSTimer* editTimer;
+@property (nonatomic, assign) BOOL useTwoRowLayout;
 @end
+
+// Determine if two-row layout should be used (iPad landscape)
+static BOOL ShouldUseTwoRowLayout(void) {
+    CGSize screenSize = [UIScreen mainScreen].bounds.size;
+    BOOL isLandscape = screenSize.width > screenSize.height;
+    BOOL isIPad = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
+    return isIPad && isLandscape;
+}
 
 @implementation ShortcutView
 // ==================
@@ -224,9 +245,22 @@ static NSArray *DefaultShortcuts () {
 		[layer removeFromSuperlayer];
 	}
 	[shortcutLayers removeAllObjects];
+
+	BOOL twoRowMode = ShouldUseTwoRowLayout();
+	NSUInteger shortcutsPerRow = twoRowMode ? (NSUInteger)ceil(self.shortcuts.count / 2.0) : self.shortcuts.count;
+
 	for(NSUInteger index = 0; index < self.shortcuts.count; ++index) {
 		ShortcutLayer *layer = [ShortcutLayer layer];
-		layer.position       = CGPointMake(layer.bounds.size.width * index, 0);
+
+		if (twoRowMode) {
+			NSUInteger row = index / shortcutsPerRow;  // 0 for top row, 1 for bottom
+			NSUInteger col = index % shortcutsPerRow;
+			layer.position = CGPointMake(layer.bounds.size.width * col,
+			                             layer.bounds.size.height * row);
+		} else {
+			layer.position = CGPointMake(layer.bounds.size.width * index, 0);
+		}
+
 		layer.title          = [[self.shortcuts objectAtIndex:index] title];
 		layer.isHighlighted  = index == self.highlightedIndex;
 		[self.layer addSublayer:layer];
@@ -249,14 +283,32 @@ static NSArray *DefaultShortcuts () {
 // ===========
 
 - (void)layoutSubviews {
-    CGFloat tilesOnScreen = self.bounds.size.width / ShortcutTileSize.width;
-	CGFloat pages = ceil(self.shortcuts.count / tilesOnScreen);
-	self.contentSize = CGSizeMake((pages * tilesOnScreen) * ShortcutTileSize.width, ShortcutTileSize.height);
+	BOOL twoRowMode = ShouldUseTwoRowLayout();
+
+	if (twoRowMode) {
+		NSUInteger shortcutsPerRow = (NSUInteger)ceil(self.shortcuts.count / 2.0);
+		self.contentSize = CGSizeMake(shortcutsPerRow * ShortcutTileSize.width,
+		                              ShortcutTileSize.height * 2);
+		self.scrollEnabled = NO;
+	} else {
+		CGFloat tilesOnScreen = self.bounds.size.width / ShortcutTileSize.width;
+		CGFloat pages = ceil(self.shortcuts.count / tilesOnScreen);
+		self.contentSize = CGSizeMake((pages * tilesOnScreen) * ShortcutTileSize.width, ShortcutTileSize.height);
+		self.scrollEnabled = YES;
+	}
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
-	NSUInteger tilesOnScreen = size.width / ShortcutTileSize.width;
-	return CGSizeMake(tilesOnScreen * ShortcutTileSize.width, ShortcutTileSize.height);
+	BOOL twoRowMode = ShouldUseTwoRowLayout();
+
+	if (twoRowMode) {
+		NSUInteger shortcutsPerRow = (NSUInteger)ceil(self.shortcuts.count / 2.0);
+		return CGSizeMake(shortcutsPerRow * ShortcutTileSize.width,
+		                  ShortcutTileSize.height * 2);
+	} else {
+		NSUInteger tilesOnScreen = size.width / ShortcutTileSize.width;
+		return CGSizeMake(tilesOnScreen * ShortcutTileSize.width, ShortcutTileSize.height);
+	}
 }
 
 // ===========
