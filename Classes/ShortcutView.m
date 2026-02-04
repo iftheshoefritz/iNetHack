@@ -165,7 +165,7 @@ static NSArray *DefaultShortcuts () {
 			@"E",          @"Q",        @"d",        @"D",
 			@"w",          @"W",        @"x",        @"P",
 			@"T",          @"A",        @"R",        @"p",
-			@"^x",
+			@"^x",         @"<",        @">",
 			nil];
 }
 
