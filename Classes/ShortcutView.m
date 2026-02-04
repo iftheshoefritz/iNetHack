@@ -44,6 +44,8 @@ static Shortcut *ShortcutForIdentifier (NSString *identifier) {
     } else if ([identifier isEqualToString:ShortcutLogIdentifier]) {
         title    = @"log";
         selector = @selector(nethackShowLog:);
+	} else if ([identifier isEqualToString:@"M-N"]) {
+        title    = @"name";
 	}
 	return [[[Shortcut alloc] initWithTitle:title keys:(selector ? nil : identifier) selector:selector target:nil]
 			autorelease];
@@ -156,7 +158,7 @@ static BOOL ShouldUseTwoRowLayout(void) {
 static NSArray *DefaultShortcuts () {
 	return [NSArray arrayWithObjects:
 			@".",          @"20s",      @":",        @"20.",
-			@",",          @"#",
+			@",",          @"#",        @"M-N",
 			ShortcutMainMenuIdentifier,   ShortcutKeyboardIdentifier, ShortcutLogIdentifier,
 			@";",
 			@"i",          @"e",        @"t",        @"f",
