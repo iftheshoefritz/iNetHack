@@ -30,6 +30,8 @@ static NSString* ParseShortcutString (NSString* keys) {
     }
 	if ([keys characterAtIndex:0] == '^') {
 		keys = [NSString stringWithFormat:@"%c", (0x1f & [keys characterAtIndex:1])];
+	} else if ([keys length] >= 2 && [keys characterAtIndex:0] == 'M' && [keys characterAtIndex:1] == '-') {
+		keys = [NSString stringWithFormat:@"%c", (0x80 | [keys characterAtIndex:2])];
 	}
 	return keys;
 }
