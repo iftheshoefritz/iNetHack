@@ -157,6 +157,13 @@ extern short glyph2tile[];
     tv.separatorStyle = UITableViewCellSeparatorStyleNone; //iNethack2: prevent line separator
     self.navigationController.navigationBar.backgroundColor = colorInvert?[UIColor whiteColor]:[UIColor blackColor];
     self.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName : colorInvert?[UIColor blackColor]:[UIColor whiteColor]};
+
+    // Add long press gesture for inventory context menu
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc]
+        initWithTarget:self action:@selector(handleLongPress:)];
+    longPress.minimumPressDuration = 0.5;
+    [self.tableView addGestureRecognizer:longPress];
+    [longPress release];
 }
 
 //--iNethack2 added to set the background color of headers in inventory
@@ -188,7 +195,38 @@ extern short glyph2tile[];
 	}
 }
 
+#pragma mark Long Press Context Menu
 
+- (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
+    if (gesture.state != UIGestureRecognizerStateBegan) return;
+
+    // Only show context menu for inventory window
+    if (menuWindow != [[MainViewController instance] windowWithId:WIN_INVEN]) return;
+
+    CGPoint point = [gesture locationInView:self.tableView];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:point];
+    if (!indexPath) return;
+
+    NethackMenuItem *item = [self nethackMenuItemAtIndexPath:indexPath];
+    if (item.isTitle || item.isMeta) return;
+
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:item.title
+        message:nil
+        preferredStyle:UIAlertControllerStyleActionSheet];
+
+
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel"
+        style:UIAlertActionStyleCancel
+        handler:nil]];
+
+    // For iPad popover support
+    alert.popoverPresentationController.sourceView = self.tableView;
+    alert.popoverPresentationController.sourceRect =
+        [self.tableView rectForRowAtIndexPath:indexPath];
+
+    [self presentViewController:alert animated:YES completion:nil];
+}
 
 #pragma mark UITableView delegate
 
